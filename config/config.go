@@ -14,22 +14,18 @@ func Boot(env map[string]string, loaders map[string]LoadFn) error {
 		if err != nil {
 			return fmt.Errorf("Error loading config for %s: %w", name, err)
 		}
-
 		repo[name] = configValue
 	}
 
 	configRepository = repo
-
 	return nil
 }
 
 func GetGroup[G any](name string) (G, bool) {
-	group, ok := configRepository[name]
-	if !ok {
-		return *new(G), ok
+	if group, ok := configRepository[name]; ok {
+		g, ok := group.(G)
+		return g, ok
 	}
 
-	g, ok := group.(G)
-
-	return g, ok
+	return *new(G), false
 }

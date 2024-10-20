@@ -9,20 +9,20 @@ import (
 var env map[string]string
 
 func Read() (map[string]string, error) {
-  return godotenv.Read()
+	return godotenv.Read()
 }
 
 func Boot() error {
-  e, err := Read()
-  if err != nil {
-    return fmt.Errorf("Error while booting env: %w", err)
-  }
+	e, err := Read()
+	if err != nil {
+		return fmt.Errorf("Error while booting env: %w", err)
+	}
 
-  env = e
+	env = e
 
-  return nil
+	return nil
 }
 
 func Get() map[string]string {
-  return env
+	return env
 }
