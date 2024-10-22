@@ -8,10 +8,10 @@ import (
 type conf struct{}
 
 func Config() conf {
-  return conf{}
+	return conf{}
 }
 
 func (this conf) App() b.App {
-  appConfig, _ := config.GetGroup[b.App]("app")
-  return appConfig
+	appConfig, _ := config.GetGroup[b.App]("app")
+	return appConfig
 }
