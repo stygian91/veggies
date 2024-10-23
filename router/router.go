@@ -32,9 +32,31 @@ type Route struct {
 
 type MiddlewareHandler func(next http.Handler) http.Handler
 
+var (
+	router *Router
+)
+
+func init() {
+	r := NewRouter()
+	router = &r
+}
+
+func Get() *Router {
+	return router
+}
+
 func NewRouter() Router {
 	mux := http.NewServeMux()
 	return Router{groups: []*Group{}, mux: mux}
+}
+
+func NewGroup() Group {
+	mux := http.NewServeMux()
+	return Group{
+		mux:         mux,
+		middlewares: []Middleware{},
+		routes:      []*Route{},
+	}
 }
 
 func CombineMiddleware(middlewares []Middleware) MiddlewareHandler {
@@ -45,15 +67,6 @@ func CombineMiddleware(middlewares []Middleware) MiddlewareHandler {
 		}
 
 		return next
-	}
-}
-
-func NewGroup() Group {
-	mux := http.NewServeMux()
-	return Group{
-		mux:         mux,
-		middlewares: []Middleware{},
-		routes:      []*Route{},
 	}
 }
 
