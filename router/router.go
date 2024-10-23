@@ -81,7 +81,7 @@ func (this *Router) Group(cb func(*Group)) *Group {
 
 func (this *Router) Boot() {
 	for _, g := range this.groups {
-		g.Boot()
+		g.boot(g.middlewares)
 
 		cleanPrefix := strings.Trim(g.GetPrefix(), "/")
 		if len(cleanPrefix) == 0 {
@@ -96,11 +96,9 @@ func (this Router) Mux() *http.ServeMux {
 	return this.mux
 }
 
-func (this *Group) Boot() {
+func (this *Group) boot(middlewares []Middleware) {
 	for _, subgroup := range this.subgroups {
-		for _, g := range subgroup.subgroups {
-			g.Boot()
-		}
+		subgroup.boot(slices.Concat(middlewares, subgroup.middlewares))
 
 		cleanPrefix := strings.Trim(subgroup.GetPrefix(), "/")
 		if len(cleanPrefix) == 0 {
@@ -108,21 +106,11 @@ func (this *Group) Boot() {
 		} else {
 			this.mux.Handle("/"+cleanPrefix+"/", http.StripPrefix("/"+cleanPrefix, subgroup.mux))
 		}
-
-		groupMiddleware := CombineMiddleware(this.middlewares)
-
-		for _, r := range subgroup.routes {
-			routeMiddleware := CombineMiddleware(r.middlewares)
-			handler := groupMiddleware(routeMiddleware(r.handler))
-			subgroup.mux.Handle(r.pattern, handler)
-		}
 	}
 
-	groupMiddleware := CombineMiddleware(this.middlewares)
-
 	for _, r := range this.routes {
-		routeMiddleware := CombineMiddleware(r.middlewares)
-		handler := groupMiddleware(routeMiddleware(r.handler))
+		routeMiddleware := CombineMiddleware(slices.Concat(middlewares, r.middlewares))
+		handler := routeMiddleware(r.handler)
 		this.mux.Handle(r.pattern, handler)
 	}
 }
