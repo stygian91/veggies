@@ -12,11 +12,13 @@ type Router struct {
 }
 
 type Group struct {
-	prefix      string
-	routes      []*Route
-	middlewares []Middleware
-	subgroups   []*Group
-	mux         *http.ServeMux
+	prefix    string
+	routes    []*Route
+	subgroups []*Group
+	mux       *http.ServeMux
+
+	middlewares     []Middleware
+	skipMiddlewares map[string]empty
 }
 
 type Middleware struct {
@@ -24,10 +26,14 @@ type Middleware struct {
 	Handler MiddlewareHandler
 }
 
+type empty struct{}
+
 type Route struct {
-	pattern     string
-	handler     http.Handler
-	middlewares []Middleware
+	pattern string
+	handler http.Handler
+
+	middlewares     []Middleware
+	skipMiddlewares map[string]empty
 }
 
 type MiddlewareHandler func(next http.Handler) http.Handler
@@ -53,9 +59,10 @@ func NewRouter() Router {
 func NewGroup() Group {
 	mux := http.NewServeMux()
 	return Group{
-		mux:         mux,
-		middlewares: []Middleware{},
-		routes:      []*Route{},
+		mux:             mux,
+		middlewares:     []Middleware{},
+		routes:          []*Route{},
+		skipMiddlewares: map[string]empty{},
 	}
 }
 
@@ -81,7 +88,7 @@ func (this *Router) Group(cb func(*Group)) *Group {
 
 func (this *Router) Boot() {
 	for _, g := range this.groups {
-		g.boot(g.middlewares)
+		g.boot(filterMiddleware(g.middlewares, g.skipMiddlewares))
 
 		cleanPrefix := strings.Trim(g.GetPrefix(), "/")
 		if len(cleanPrefix) == 0 {
@@ -98,7 +105,7 @@ func (this Router) Mux() *http.ServeMux {
 
 func (this *Group) boot(middlewares []Middleware) {
 	for _, subgroup := range this.subgroups {
-		subgroup.boot(slices.Concat(middlewares, subgroup.middlewares))
+		subgroup.boot(filterMiddleware(slices.Concat(middlewares, subgroup.middlewares), subgroup.skipMiddlewares))
 
 		cleanPrefix := strings.Trim(subgroup.GetPrefix(), "/")
 		if len(cleanPrefix) == 0 {
@@ -109,7 +116,7 @@ func (this *Group) boot(middlewares []Middleware) {
 	}
 
 	for _, r := range this.routes {
-		routeMiddleware := CombineMiddleware(slices.Concat(middlewares, r.middlewares))
+		routeMiddleware := CombineMiddleware(filterMiddleware(slices.Concat(middlewares, r.middlewares), r.skipMiddlewares))
 		handler := routeMiddleware(r.handler)
 		this.mux.Handle(r.pattern, handler)
 	}
@@ -139,15 +146,23 @@ func (this *Group) Middleware(middlewares []Middleware) *Group {
 	return this
 }
 
+func (this *Group) SkipMiddleware(names []string) *Group {
+	for _, name := range names {
+		this.skipMiddlewares[name] = empty{}
+	}
+
+	return this
+}
+
 func (this *Group) Handle(pattern string, handler http.Handler) *Route {
-	route := Route{pattern: pattern, handler: handler, middlewares: []Middleware{}}
+	route := Route{pattern: pattern, handler: handler, middlewares: []Middleware{}, skipMiddlewares: map[string]empty{}}
 	this.routes = append(this.routes, &route)
 
 	return &route
 }
 
 func (this *Group) HandleFunc(pattern string, handler http.HandlerFunc) *Route {
-	route := Route{pattern: pattern, handler: http.HandlerFunc(handler)}
+	route := Route{pattern: pattern, handler: http.HandlerFunc(handler), middlewares: []Middleware{}, skipMiddlewares: map[string]empty{}}
 	this.routes = append(this.routes, &route)
 
 	return &route
@@ -157,4 +172,19 @@ func (this *Route) Middleware(middlewares []Middleware) *Route {
 	this.middlewares = slices.Concat(this.middlewares, middlewares)
 
 	return this
+}
+
+func (this *Route) SkipMiddleware(names []string) *Route {
+	for _, name := range names {
+		this.skipMiddlewares[name] = empty{}
+	}
+
+	return this
+}
+
+func filterMiddleware(middlewares []Middleware, skips map[string]empty) []Middleware {
+	return slices.DeleteFunc(middlewares, func(m Middleware) bool {
+		_, isInSkips := skips[m.Name]
+		return isInSkips
+	})
 }
