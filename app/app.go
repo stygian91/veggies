@@ -11,7 +11,11 @@ func Boot() error {
 		return err
 	}
 
-	if err := config.Boot(env.Get(), base.Loaders()); err != nil {
+	if err := registerBaseConfig(); err != nil {
+		return err
+	}
+
+	if err := config.Boot(env.Get()); err != nil {
 		return err
 	}
 
@@ -20,5 +24,15 @@ func Boot() error {
 
 func Run() error {
 	// TODO:
+	return nil
+}
+
+func registerBaseConfig() error {
+	for name, loader := range base.Loaders() {
+		if err := config.Register(name, loader); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
