@@ -1,9 +1,13 @@
 package app
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/stygian91/veggies/config"
 	"github.com/stygian91/veggies/config/base"
 	"github.com/stygian91/veggies/env"
+	"github.com/stygian91/veggies/router"
 )
 
 func Boot() error {
@@ -19,12 +23,19 @@ func Boot() error {
 		return err
 	}
 
+	router.Get().Boot()
+
 	return nil
 }
 
 func Run() error {
-	// TODO:
-	return nil
+	appCfg, ok := config.GetGroup[base.App]("app")
+	if !ok {
+		return fmt.Errorf("Error while starting up app - invalid app config.")
+	}
+
+	// TODO: check for SSL config and use ListenAndServeTLS if it's available
+	return http.ListenAndServe(appCfg.Addr, router.Get().Mux())
 }
 
 func registerBaseConfig() error {

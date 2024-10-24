@@ -4,6 +4,7 @@ import "fmt"
 
 type App struct {
 	Addr string
+	Url  string
 }
 
 func LoadApp(env map[string]string) (any, error) {
@@ -12,5 +13,10 @@ func LoadApp(env map[string]string) (any, error) {
 		return App{}, fmt.Errorf("Error loading App config - could not find APP_ADDR")
 	}
 
-	return App{Addr: addr}, nil
+	url, ok := env["APP_URL"]
+	if !ok {
+		return App{}, fmt.Errorf("Error loading App config - could not find APP_URL")
+	}
+
+	return App{Addr: addr, Url: url}, nil
 }
