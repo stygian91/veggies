@@ -140,13 +140,13 @@ func (this *Group) SetPrefix(prefix string) *Group {
 	return this
 }
 
-func (this *Group) Middleware(middlewares []Middleware) *Group {
+func (this *Group) Middleware(middlewares ...Middleware) *Group {
 	this.middlewares = slices.Concat(this.middlewares, middlewares)
 
 	return this
 }
 
-func (this *Group) SkipMiddleware(names []string) *Group {
+func (this *Group) SkipMiddleware(names ...string) *Group {
 	for _, name := range names {
 		this.skipMiddlewares[name] = empty{}
 	}
@@ -168,13 +168,13 @@ func (this *Group) HandleFunc(pattern string, handler http.HandlerFunc) *Route {
 	return &route
 }
 
-func (this *Route) Middleware(middlewares []Middleware) *Route {
+func (this *Route) Middleware(middlewares ...Middleware) *Route {
 	this.middlewares = slices.Concat(this.middlewares, middlewares)
 
 	return this
 }
 
-func (this *Route) SkipMiddleware(names []string) *Route {
+func (this *Route) SkipMiddleware(names ...string) *Route {
 	for _, name := range names {
 		this.skipMiddlewares[name] = empty{}
 	}
