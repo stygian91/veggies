@@ -21,14 +21,7 @@ type Group struct {
 	skipMiddlewares map[string]empty
 }
 
-type Middleware struct {
-	Name    string
-	Handler MiddlewareHandler
-}
-
 type empty struct{}
-
-type MiddlewareHandler func(next http.Handler) http.Handler
 
 var (
 	router *Router
@@ -55,17 +48,6 @@ func NewGroup() Group {
 		middlewares:     []Middleware{},
 		routes:          []*Route{},
 		skipMiddlewares: map[string]empty{},
-	}
-}
-
-func CombineMiddleware(middlewares []Middleware) MiddlewareHandler {
-	return func(next http.Handler) http.Handler {
-		for i := len(middlewares) - 1; i >= 0; i-- {
-			m := middlewares[i]
-			next = m.Handler(next)
-		}
-
-		return next
 	}
 }
 
@@ -158,11 +140,4 @@ func (this *Group) HandleFunc(pattern string, handler http.HandlerFunc) *Route {
 	this.routes = append(this.routes, &route)
 
 	return &route
-}
-
-func filterMiddleware(middlewares []Middleware, skips map[string]empty) []Middleware {
-	return slices.DeleteFunc(middlewares, func(m Middleware) bool {
-		_, isInSkips := skips[m.Name]
-		return isInSkips
-	})
 }
