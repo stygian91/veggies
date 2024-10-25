@@ -140,9 +140,9 @@ func (this *Group) SkipMiddleware(names ...string) *Group {
 
 func (this *Group) Handle(pattern string, handler http.Handler) *Route {
 	route := Route{
-		pattern: pattern,
-		handler: handler,
-		middlewares: []Middleware{},
+		pattern:         pattern,
+		handler:         handler,
+		middlewares:     []Middleware{},
 		skipMiddlewares: map[string]empty{},
 	}
 	this.routes = append(this.routes, &route)
@@ -152,9 +152,9 @@ func (this *Group) Handle(pattern string, handler http.Handler) *Route {
 
 func (this *Group) HandleFunc(pattern string, handler http.HandlerFunc) *Route {
 	route := Route{
-		pattern: pattern,
-		handler: http.HandlerFunc(handler),
-		middlewares: []Middleware{},
+		pattern:         pattern,
+		handler:         http.HandlerFunc(handler),
+		middlewares:     []Middleware{},
 		skipMiddlewares: map[string]empty{},
 	}
 	this.routes = append(this.routes, &route)

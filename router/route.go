@@ -41,6 +41,8 @@ func (this Route) GetName() string {
 	return this.name
 }
 
-func (this *Route) SetName(name string) {
+func (this *Route) SetName(name string) *Route {
 	this.name = name
+
+	return this
 }
