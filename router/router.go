@@ -28,14 +28,6 @@ type Middleware struct {
 
 type empty struct{}
 
-type Route struct {
-	pattern string
-	handler http.Handler
-
-	middlewares     []Middleware
-	skipMiddlewares map[string]empty
-}
-
 type MiddlewareHandler func(next http.Handler) http.Handler
 
 var (
@@ -117,8 +109,8 @@ func (this *Group) boot(middlewares []Middleware) {
 
 	for _, r := range this.routes {
 		routeMiddleware := CombineMiddleware(filterMiddleware(slices.Concat(middlewares, r.middlewares), r.skipMiddlewares))
-		handler := routeMiddleware(r.handler)
-		this.mux.Handle(r.pattern, handler)
+		r.handler = routeMiddleware(r.handler)
+		this.mux.Handle(r.pattern, r)
 	}
 }
 
@@ -166,20 +158,6 @@ func (this *Group) HandleFunc(pattern string, handler http.HandlerFunc) *Route {
 	this.routes = append(this.routes, &route)
 
 	return &route
-}
-
-func (this *Route) Middleware(middlewares ...Middleware) *Route {
-	this.middlewares = slices.Concat(this.middlewares, middlewares)
-
-	return this
-}
-
-func (this *Route) SkipMiddleware(names ...string) *Route {
-	for _, name := range names {
-		this.skipMiddlewares[name] = empty{}
-	}
-
-	return this
 }
 
 func filterMiddleware(middlewares []Middleware, skips map[string]empty) []Middleware {
