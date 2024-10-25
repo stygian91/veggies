@@ -79,7 +79,12 @@ func (this Router) Mux() *http.ServeMux {
 
 func (this *Group) boot(middlewares []Middleware) {
 	for _, subgroup := range this.subgroups {
-		subgroup.boot(filterMiddleware(slices.Concat(middlewares, subgroup.middlewares), subgroup.skipMiddlewares))
+		subgroup.boot(
+			filterMiddleware(
+				slices.Concat(middlewares, subgroup.middlewares),
+				subgroup.skipMiddlewares,
+			),
+		)
 
 		cleanPrefix := strings.Trim(subgroup.GetPrefix(), "/")
 		if len(cleanPrefix) == 0 {
@@ -90,7 +95,12 @@ func (this *Group) boot(middlewares []Middleware) {
 	}
 
 	for _, r := range this.routes {
-		routeMiddleware := CombineMiddleware(filterMiddleware(slices.Concat(middlewares, r.middlewares), r.skipMiddlewares))
+		routeMiddleware := CombineMiddleware(
+			filterMiddleware(
+				slices.Concat(middlewares, r.middlewares),
+				r.skipMiddlewares,
+			),
+		)
 		r.handler = routeMiddleware(r.handler)
 		this.mux.Handle(r.pattern, r)
 	}
@@ -129,14 +139,24 @@ func (this *Group) SkipMiddleware(names ...string) *Group {
 }
 
 func (this *Group) Handle(pattern string, handler http.Handler) *Route {
-	route := Route{pattern: pattern, handler: handler, middlewares: []Middleware{}, skipMiddlewares: map[string]empty{}}
+	route := Route{
+		pattern: pattern,
+		handler: handler,
+		middlewares: []Middleware{},
+		skipMiddlewares: map[string]empty{},
+	}
 	this.routes = append(this.routes, &route)
 
 	return &route
 }
 
 func (this *Group) HandleFunc(pattern string, handler http.HandlerFunc) *Route {
-	route := Route{pattern: pattern, handler: http.HandlerFunc(handler), middlewares: []Middleware{}, skipMiddlewares: map[string]empty{}}
+	route := Route{
+		pattern: pattern,
+		handler: http.HandlerFunc(handler),
+		middlewares: []Middleware{},
+		skipMiddlewares: map[string]empty{},
+	}
 	this.routes = append(this.routes, &route)
 
 	return &route
