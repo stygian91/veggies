@@ -10,8 +10,21 @@ import (
 
 type fileEntry struct{ Path, Content string }
 
-var mapping []fileEntry
-var subdirs []string
+var mapping []fileEntry = []fileEntry{
+	{Path: "/main.go", Content: templates.Main},
+	{Path: "/go.mod", Content: templates.Gomod},
+	{Path: "/go.sum", Content: templates.Gosum},
+	{Path: "/sqlc.yaml", Content: templates.Sqlc},
+	{Path: "/query.sql", Content: templates.Query},
+	{Path: "/schema.sql", Content: templates.Schema},
+	{Path: "/.env", Content: templates.EnvExample},
+	{Path: "/handlers/greet.go", Content: templates.Greet},
+	{Path: "/routes/routes.go", Content: templates.Routes},
+}
+var subdirs []string = []string{
+	"/handlers",
+	"/routes",
+}
 
 // newCmd represents the new command
 var newCmd = &cobra.Command{
@@ -27,25 +40,6 @@ var newCmd = &cobra.Command{
 }
 
 func init() {
-	m := []fileEntry{
-		{Path: "/main.go", Content: templates.Main},
-		{Path: "/go.mod", Content: templates.Gomod},
-		{Path: "/go.sum", Content: templates.Gosum},
-		{Path: "/sqlc.yaml", Content: templates.Sqlc},
-		{Path: "/query.sql", Content: templates.Query},
-		{Path: "/schema.sql", Content: templates.Schema},
-		{Path: "/.env", Content: templates.EnvExample},
-		{Path: "/handlers/greet.go", Content: templates.Greet},
-		{Path: "/routes/routes.go", Content: templates.Routes},
-	}
-	mapping = m
-
-	s := []string{
-		"/handlers",
-		"/routes",
-	}
-	subdirs = s
-
 	rootCmd.AddCommand(newCmd)
 }
 

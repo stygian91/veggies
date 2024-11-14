@@ -5,14 +5,9 @@ import "fmt"
 type LoadFn func(env map[string]string) (any, error)
 
 var (
-	repository map[string]any
-	loaders    map[string]LoadFn
+	repository map[string]any    = map[string]any{}
+	loaders    map[string]LoadFn = map[string]LoadFn{}
 )
-
-func init() {
-	repository = map[string]any{}
-	loaders = map[string]LoadFn{}
-}
 
 func Register(name string, loader LoadFn) error {
 	if _, exists := loaders[name]; exists {
