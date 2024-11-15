@@ -11,9 +11,6 @@ var Main string
 //go:embed data/go.mod.tmpl
 var Gomod string
 
-//go:embed data/go.sum.tmpl
-var Gosum string
-
 //go:embed data/query.sql
 var Query string
 

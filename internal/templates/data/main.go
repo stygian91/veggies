@@ -1,7 +1,7 @@
 package main
 
 import (
-	"veggie-app/routes"
+	"{{module}}/routes"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stygian91/veggies/app"

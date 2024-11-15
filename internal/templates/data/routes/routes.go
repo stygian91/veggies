@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"veggie-app/handlers"
+	"{{module}}/handlers"
 
 	"github.com/stygian91/veggies/router"
 )
@@ -9,5 +9,5 @@ import (
 func InitRoutes() {
 	router.Get().Group(func(g *router.Group) {
 		g.HandleFunc("/", handlers.Greet)
-	})
+	}).Middleware(router.LogMiddleware)
 }
