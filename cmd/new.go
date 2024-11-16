@@ -86,6 +86,7 @@ func runTidy(name string) (string, error) {
 // add info output
 // maybe add options for db drivers
 func run(name string) error {
+	fmt.Println("Creating files and directories...")
 	if err := createDirs(name); err != nil {
 		return err
 	}
@@ -98,9 +99,10 @@ func run(name string) error {
 		}
 	}
 
-	out, err := runTidy(name);
+	fmt.Println("Running `go mod tidy`...")
+	out, err := runTidy(name)
 	fmt.Println(out)
-	if  err != nil {
+	if err != nil {
 		return fmt.Errorf("Error while running `go mod tidy`: %w", err)
 	}
 

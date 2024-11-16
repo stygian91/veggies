@@ -34,6 +34,8 @@ func Run() error {
 		return fmt.Errorf("Error while starting up app - invalid app config.")
 	}
 
+	fmt.Printf("Starting server on: %s\n", appCfg.Addr)
+
 	// TODO: check for SSL config and use ListenAndServeTLS if it's available
 	return http.ListenAndServe(appCfg.Addr, router.Get().Mux())
 }
