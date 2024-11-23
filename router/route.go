@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"slices"
+
+	m "github.com/stygian91/veggies/router/middleware"
 )
 
 type Route struct {
@@ -11,11 +13,11 @@ type Route struct {
 	pattern string
 	handler http.Handler
 
-	middlewares     []Middleware
-	skipMiddlewares map[string]empty
+	middlewares     []m.Middleware
+	skipMiddlewares map[string]struct{}
 }
 
-func (this *Route) Middleware(middlewares ...Middleware) *Route {
+func (this *Route) Middleware(middlewares ...m.Middleware) *Route {
 	this.middlewares = slices.Concat(this.middlewares, middlewares)
 
 	return this
@@ -23,7 +25,7 @@ func (this *Route) Middleware(middlewares ...Middleware) *Route {
 
 func (this *Route) SkipMiddleware(names ...string) *Route {
 	for _, name := range names {
-		this.skipMiddlewares[name] = empty{}
+		this.skipMiddlewares[name] = struct{}{}
 	}
 
 	return this

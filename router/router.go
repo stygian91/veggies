@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+
+	m "github.com/stygian91/veggies/router/middleware"
 )
 
 type Router struct {
@@ -17,11 +19,9 @@ type Group struct {
 	subgroups []*Group
 	mux       *http.ServeMux
 
-	middlewares     []Middleware
-	skipMiddlewares map[string]empty
+	middlewares     []m.Middleware
+	skipMiddlewares map[string]struct{}
 }
-
-type empty struct{}
 
 var (
 	router *Router
@@ -45,9 +45,9 @@ func NewGroup() Group {
 	mux := http.NewServeMux()
 	return Group{
 		mux:             mux,
-		middlewares:     []Middleware{},
+		middlewares:     []m.Middleware{},
 		routes:          []*Route{},
-		skipMiddlewares: map[string]empty{},
+		skipMiddlewares: map[string]struct{}{},
 	}
 }
 
@@ -62,7 +62,7 @@ func (this *Router) Group(cb func(*Group)) *Group {
 
 func (this *Router) Boot() {
 	for _, g := range this.groups {
-		g.boot(filterMiddleware(g.middlewares, g.skipMiddlewares))
+		g.boot(m.FilterMiddleware(g.middlewares, g.skipMiddlewares))
 
 		cleanPrefix := strings.Trim(g.GetPrefix(), "/")
 		if len(cleanPrefix) == 0 {
@@ -77,10 +77,10 @@ func (this Router) Mux() *http.ServeMux {
 	return this.mux
 }
 
-func (this *Group) boot(middlewares []Middleware) {
+func (this *Group) boot(middlewares []m.Middleware) {
 	for _, subgroup := range this.subgroups {
 		subgroup.boot(
-			filterMiddleware(
+			m.FilterMiddleware(
 				slices.Concat(middlewares, subgroup.middlewares),
 				subgroup.skipMiddlewares,
 			),
@@ -95,8 +95,8 @@ func (this *Group) boot(middlewares []Middleware) {
 	}
 
 	for _, r := range this.routes {
-		routeMiddleware := CombineMiddleware(
-			filterMiddleware(
+		routeMiddleware := m.CombineMiddleware(
+			m.FilterMiddleware(
 				slices.Concat(middlewares, r.middlewares),
 				r.skipMiddlewares,
 			),
@@ -124,7 +124,7 @@ func (this *Group) SetPrefix(prefix string) *Group {
 	return this
 }
 
-func (this *Group) Middleware(middlewares ...Middleware) *Group {
+func (this *Group) Middleware(middlewares ...m.Middleware) *Group {
 	this.middlewares = slices.Concat(this.middlewares, middlewares)
 
 	return this
@@ -132,7 +132,7 @@ func (this *Group) Middleware(middlewares ...Middleware) *Group {
 
 func (this *Group) SkipMiddleware(names ...string) *Group {
 	for _, name := range names {
-		this.skipMiddlewares[name] = empty{}
+		this.skipMiddlewares[name] = struct{}{}
 	}
 
 	return this
@@ -142,8 +142,8 @@ func (this *Group) Handle(pattern string, handler http.Handler) *Route {
 	route := Route{
 		pattern:         pattern,
 		handler:         handler,
-		middlewares:     []Middleware{},
-		skipMiddlewares: map[string]empty{},
+		middlewares:     []m.Middleware{},
+		skipMiddlewares: map[string]struct{}{},
 	}
 	this.routes = append(this.routes, &route)
 
@@ -154,8 +154,8 @@ func (this *Group) HandleFunc(pattern string, handler http.HandlerFunc) *Route {
 	route := Route{
 		pattern:         pattern,
 		handler:         http.HandlerFunc(handler),
-		middlewares:     []Middleware{},
-		skipMiddlewares: map[string]empty{},
+		middlewares:     []m.Middleware{},
+		skipMiddlewares: map[string]struct{}{},
 	}
 	this.routes = append(this.routes, &route)
 
