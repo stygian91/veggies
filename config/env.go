@@ -1,4 +1,4 @@
-package env
+package config
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 
 var env map[string]string
 
-func Read() (map[string]string, error) {
+func read() (map[string]string, error) {
 	return godotenv.Read()
 }
 
-func Boot() error {
-	e, err := Read()
+func BootEnv() error {
+	e, err := read()
 	if err != nil {
 		return fmt.Errorf("Error while booting env: %w", err)
 	}
@@ -23,6 +23,6 @@ func Boot() error {
 	return nil
 }
 
-func Get() map[string]string {
+func GetEnv() map[string]string {
 	return env
 }

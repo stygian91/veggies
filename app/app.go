@@ -6,12 +6,11 @@ import (
 
 	"github.com/stygian91/veggies/config"
 	"github.com/stygian91/veggies/config/base"
-	"github.com/stygian91/veggies/env"
 	"github.com/stygian91/veggies/router"
 )
 
 func Boot() error {
-	if err := env.Boot(); err != nil {
+	if err := config.BootEnv(); err != nil {
 		return err
 	}
 
@@ -19,7 +18,7 @@ func Boot() error {
 		return err
 	}
 
-	if err := config.Boot(env.Get()); err != nil {
+	if err := config.Boot(config.GetEnv()); err != nil {
 		return err
 	}
 
@@ -34,9 +33,12 @@ func Run() error {
 		return fmt.Errorf("Error while starting up app - invalid app config.")
 	}
 
-	fmt.Printf("Starting server on: %s\n", appCfg.Addr)
+	if len(appCfg.SSLCert) > 0 && len(appCfg.SSLKey) > 0 {
+		fmt.Printf("Starting https server on: %s\n", appCfg.Addr)
+		return http.ListenAndServeTLS(appCfg.Addr, appCfg.SSLCert, appCfg.SSLKey, router.Get().Mux())
+	}
 
-	// TODO: check for SSL config and use ListenAndServeTLS if it's available
+	fmt.Printf("Starting http server on: %s\n", appCfg.Addr)
 	return http.ListenAndServe(appCfg.Addr, router.Get().Mux())
 }
 

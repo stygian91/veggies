@@ -17,3 +17,7 @@ func Get[G any](name string) (G, bool) {
 func Register(name string, loader config.LoadFn) error {
 	return config.Register(name, loader)
 }
+
+func Env() map[string]string {
+	return config.GetEnv()
+}
